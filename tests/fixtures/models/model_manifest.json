@@ -1,0 +1,38 @@
+{
+  "model_architecture": "StandardVisionClassifier",
+  "task": "classification",
+  "classes": [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat"
+  ],
+  "input_shape": [
+    3,
+    224,
+    224
+  ],
+  "models": {
+    "clean_reference": {
+      "file_name": "clean_vision_model.pt",
+      "path": "C:\\Users\\Namith Singh\\OneDrive\\Documents\\SIH 2ND ATTEMPT\\tests\\fixtures\\models\\clean_vision_model.pt",
+      "size_bytes": 100462,
+      "sha256": "c4bc3123a4d849a892e44b5885b8c081c6200aad4690f52eaa646c6ec2057d48",
+      "description": "Golden reference baseline model compiled to TorchScript."
+    },
+    "clean_candidate": {
+      "file_name": "candidate_vision_model.pt",
+      "path": "C:\\Users\\Namith Singh\\OneDrive\\Documents\\SIH 2ND ATTEMPT\\tests\\fixtures\\models\\candidate_vision_model.pt",
+      "size_bytes": 100462,
+      "sha256": "c4bc3123a4d849a892e44b5885b8c081c6200aad4690f52eaa646c6ec2057d48",
+      "description": "Candidate model identical to golden reference for baseline assurance (zero false positives)."
+    },
+    "modified_candidate": {
+      "file_name": "modified_vision_model.pt",
+      "path": "C:\\Users\\Namith Singh\\OneDrive\\Documents\\SIH 2ND ATTEMPT\\tests\\fixtures\\models\\modified_vision_model.pt",
+      "size_bytes": 100607,
+      "sha256": "ab0a6305f75b6565226cde3987cf9d928e28efaabc892e8f72fd9c3247ad663a",
+      "description": "Controlled perturbed candidate (fc2.weight altered by +0.08) for demonstrating MT-2 tamper detection."
+    }
+  }
+}

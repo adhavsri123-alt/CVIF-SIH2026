@@ -1,0 +1,59 @@
+  {
+    "record_id": "98225e6e-8299-4d1e-a239-f51b848e223a",
+    "session_id": "7d4bc99f-d2b9-416a-9e5f-b99999ae01df",
+    "producer_id": "tactical_recon_unit_alpha",
+    "origin": "EXTERNAL",
+    "input_image_hash": "d77c28c941f5640acb92d24739d0ff4f4633667d5f068761b8f8ccd5a0b26738",
+    "model_id": "StandardVisionClassifier",
+    "model_weight_digest": "c4bc3123a4d849a892e44b5885b8c081c6200aad4690f52eaa646c6ec2057d48",
+    "preprocessing_config_hash": "5215c6238a28c24efc5708fbbb03ac688880a20fa4bfc75a70776150c33060a8",
+    "inference_config": {
+      "batch_size": 1,
+      "device": "cpu",
+      "confidence_threshold": 0.25
+    },
+    "output": {
+      "task_type": "CLASSIFICATION",
+      "status": "SUCCESS",
+      "classification": {
+        "class_id": 1,
+        "class_name": "automobile",
+        "confidence": 0.26826488971710205,
+        "top_k": [
+          {
+            "class_id": 1,
+            "class_name": "automobile",
+            "confidence": 0.26826488971710205
+          },
+          {
+            "class_id": 3,
+            "class_name": "cat",
+            "confidence": 0.25888895988464355
+          },
+          {
+            "class_id": 0,
+            "class_name": "airplane",
+            "confidence": 0.25678181648254395
+          },
+          {
+            "class_id": 2,
+            "class_name": "bird",
+            "confidence": 0.21606427431106567
+          }
+        ],
+        "logits": null
+      },
+      "detections": null,
+      "segmentation": null,
+      "raw_output": null,
+      "inference_time_ms": 118.651
+    },
+    "binding_hmac": null,
+    "signing_key_id": "ed25519-recon-alpha-001",
+    "timestamp": "2026-09-20T13:04:54.215391Z",
+    "sequence_number": 1,
+    "nonce": "a388ea911c6140a08783fa9ea92932e9",
+    "previous_record_hash": null,
+    "signature": "a276476661f8d2cea1d98a82dc969a7ddb7c54a4877e3f4459b355a43a5aa49cb06f722e75dd0b0a45af7082bac0610fb72b35cd134077d862d49de359b65006",
+    "schema_version": "1.0"
+  }

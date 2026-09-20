@@ -1,0 +1,4 @@
+"""Computer Vision Integrity Assurance Framework (CVIF) version."""
+
+__version__ = "0.1.0"
+__schema_version__ = "1.0"

@@ -1,0 +1,74 @@
+# CVIF Default Configuration File (Air-Gapped Foundation)
+system:
+  offline_mode: true
+  air_gapped: true
+  environment: "development"
+  log_level: "INFO"
+
+storage:
+  data_dir: "data"
+  catalog_db_path: "data/db/catalogue.db"
+  filestore_dir: "data/assets"
+
+audit:
+  audit_dir: "data/audit"
+  audit_log_path: "data/audit/audit.jsonl"
+  index_db_path: "data/db/audit_index.db"
+  auto_verify_on_startup: true
+
+keystore:
+  keystore_dir: "data/keys"
+  keystore_db_path: "data/db/keystore.db"
+
+evidence:
+  evidence_dir: "data/evidence_store"
+  metadata_db_path: "data/evidence_store/metadata.db"
+  sessions_dir: "data/evidence_store/sessions"
+
+feature_extractor:
+  primary_backbone: "resnet18"
+  weights_path: "assets/models/resnet18_features.pt"
+  expected_weights_sha256: ""
+  allow_statistical_fallback: true
+  embedding_dimension: 512
+  fallback_dimension: 128
+
+resources:
+  max_memory_mb: 8192
+  batch_size: 32
+  device: "cpu"
+  trigger_search_iterations: 200
+
+distribution_shift:
+  mmd_threshold: 0.15
+  wasserstein_threshold: 0.20
+  ks_alpha: 0.05
+  class_tv_threshold: 0.25
+  min_sample_size: 15
+  batch_size: 250
+  subpopulation_clustering: true
+  max_variance_dimensions: 16
+
+assurance:
+  quarantine_threshold: 0.70
+  review_threshold: 0.30
+  critical_veto_enabled: true
+  min_confidence_for_veto: 0.50
+  dimension_weights:
+    data_integrity: 0.25
+    model_integrity: 0.35
+    inference_provenance: 0.25
+    distribution_shift: 0.15
+  require_all_mandatory_checks: false
+
+api:
+  host: "127.0.0.1"
+  port: 8000
+  cors_origins: []
+  api_key_enabled: false
+  api_keys: []
+  enable_docs: false
+  allow_remote_binding: false
+  max_payload_size_mb: 10
+  timeout_seconds: 60
+
