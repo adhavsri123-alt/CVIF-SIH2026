@@ -54,7 +54,14 @@ class AssuranceOrchestrator:
 
         # Persist to database if db_manager is available
         if self.db_manager:
-            self.db_manager.save_session(session)
+            try:
+                self.db_manager.update_session_section(
+                    session_id=session.session_id,
+                    section="assurance",
+                    verdict=verdict,
+                )
+            except Exception:
+                self.db_manager.save_session(session)
             self.db_manager.save_verdict(verdict)
 
         # Log audit trail event

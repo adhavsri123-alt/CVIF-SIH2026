@@ -341,3 +341,155 @@ export interface EvidenceExportResponse {
   total_files: number;
   sha256_manifest_digest: string;
 }
+
+// ── Integrity Lineage ───────────────────────────────────────────────────
+
+export type LineageStageStatus =
+  | 'VERIFIED'
+  | 'FINDINGS'
+  | 'REVIEW'
+  | 'UNSUPPORTED'
+  | 'NOT RUN'
+  | 'FAILED / TAMPERED';
+
+export type OverallLineageStatus =
+  | 'VERIFIED'
+  | 'FINDINGS / REVIEW'
+  | 'FAILED / QUARANTINE'
+  | 'INCOMPLETE / NOT VERIFIED'
+  | 'LIMITED COVERAGE';
+
+export interface UnsupportedCheckDetail {
+  check_id: string;
+  reason: string;
+}
+
+export interface DatasetLineageNode {
+  stage: string;
+  status: LineageStageStatus;
+  dataset_identity?: string | null;
+  dataset_hash?: string | null;
+  format?: string | null;
+  findings_count: number;
+  findings: Finding[];
+  evidence_count: number;
+  details: Record<string, any>;
+}
+
+export interface ModelLineageNode {
+  stage: string;
+  status: LineageStageStatus;
+  candidate_model_id?: string | null;
+  model_digest?: string | null;
+  reference_model?: string | null;
+  findings_count: number;
+  findings: Finding[];
+  supported_checks: string[];
+  unsupported_checks: UnsupportedCheckDetail[];
+  details: Record<string, any>;
+}
+
+export interface InferenceLineageNode {
+  stage: string;
+  status: LineageStageStatus;
+  record_id?: string | null;
+  session_id?: string | null;
+  bound_model_digest?: string | null;
+  verification_state: string;
+  is_valid: boolean;
+  is_tampered: boolean;
+  is_replayed: boolean;
+  model_mismatch: boolean;
+  producer_id?: string | null;
+  signing_key_id?: string | null;
+  findings_count: number;
+  findings: Finding[];
+  details: Record<string, any>;
+}
+
+export interface DistributionLineageNode {
+  stage: string;
+  status: LineageStageStatus;
+  executed: boolean;
+  overall_distance?: number | null;
+  natural_drift_likelihood?: number | null;
+  suspicious_manipulation_likelihood?: number | null;
+  shift_detected: boolean;
+  dimension_results: Record<string, any>;
+  characterization?: string | null;
+  details: Record<string, any>;
+}
+
+export interface EvidenceLineageNode {
+  stage: string;
+  status: LineageStageStatus;
+  total_records: number;
+  cryptographic_records: number;
+  statistical_records: number;
+  artifact_records: number;
+  records: EvidenceRecordSummary[];
+  details: Record<string, any>;
+}
+
+export interface AuditLineageNode {
+  stage: string;
+  status: LineageStageStatus;
+  active_epoch: number;
+  chain_intact: boolean;
+  total_events: number;
+  verified_events: number;
+  error_message?: string | null;
+  details: Record<string, any>;
+}
+
+export interface AssuranceLineageNode {
+  stage: string;
+  status: LineageStageStatus;
+  assessed: boolean;
+  disposition?: Disposition | null;
+  composite_risk_score?: number | null;
+  summary?: string | null;
+  coverage_state: string;
+  contributing_finding_ids: string[];
+  unsupported_checks: string[];
+  details: Record<string, any>;
+}
+
+export interface LineageDependency {
+  source: string;
+  target: string;
+  relationship: string;
+  is_valid: boolean;
+  description: string;
+}
+
+export interface IntegrityLineageResponse {
+  session_id: string;
+  overall_status: OverallLineageStatus;
+  summary: string;
+  dataset: DatasetLineageNode;
+  model: ModelLineageNode;
+  inference: InferenceLineageNode;
+  distribution: DistributionLineageNode;
+  evidence: EvidenceLineageNode;
+  audit: AuditLineageNode;
+  assurance: AssuranceLineageNode;
+  dependencies: LineageDependency[];
+  timestamp: string;
+}
+
+export interface LineageVerifyRequest {
+  session_id: string;
+}
+
+// ── Session Management ──────────────────────────────────────────────────
+
+export interface CreateSessionRequest {
+  operator_id?: string;
+}
+
+export interface CreateSessionResponse {
+  session_id: string;
+  status: string;
+  created_at: string;
+}

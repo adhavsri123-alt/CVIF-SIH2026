@@ -1,5 +1,6 @@
 """Inference provenance verification endpoints."""
 
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -51,6 +52,41 @@ def verify_provenance(
     )
 
     producer = req.record.producer_id or req.record.signing_key_id or "Unknown"
+
+    # Persist verified provenance outcome to database
+    if ctx.db:
+        try:
+            ctx.db.save_provenance_record(
+                record_id=req.record.record_id,
+                session_id=req.record.session_id,
+                model_id=req.record.model_id,
+                model_weight_digest=req.record.model_weight_digest,
+                input_image_hash=req.record.input_image_hash,
+                signing_key_id=req.record.signing_key_id,
+                producer_id=producer,
+                is_valid=res.is_valid,
+                status=res.status.value,
+                details_json=json.dumps(res.details or {}),
+                created_at=req.record.timestamp.isoformat() if req.record.timestamp else None,
+            )
+
+            env_updates = {
+                "inference_record_id": str(req.record.record_id),
+                "producer_id": producer,
+                "model_id": req.record.model_id,
+                "model_weight_digest": req.record.model_weight_digest,
+                "is_valid": res.is_valid,
+                "verification_status": res.status.value,
+            }
+            ctx.db.update_session_section(
+                session_id=req.record.session_id,
+                section="inference",
+                executed_analyses=["INFERENCE_PROVENANCE"],
+                findings=res.findings or [],
+                environment_updates=env_updates,
+            )
+        except Exception:
+            pass
 
     return ProvenanceVerifyResponse(
         record_id=req.record.record_id,

@@ -10,6 +10,7 @@ import { ShiftPage } from './pages/ShiftPage';
 import { AssurancePage } from './pages/AssurancePage';
 import { EvidencePage } from './pages/EvidencePage';
 import { AuditPage } from './pages/AuditPage';
+import { LineagePage } from './pages/LineagePage';
 import { HealthStatusResponse, VersionResponse } from './types/api';
 import api from './api/client';
 
@@ -17,7 +18,7 @@ export const App: React.FC = () => {
   // Determine initial tab from pathname or default to overview
   const getInitialTab = (): string => {
     const path = window.location.pathname.replace(/^\/+/, '');
-    const validTabs = ['overview', 'dataset', 'model', 'provenance', 'shift', 'assurance', 'evidence', 'audit'];
+    const validTabs = ['overview', 'dataset', 'model', 'provenance', 'shift', 'lineage', 'assurance', 'evidence', 'audit'];
     if (validTabs.includes(path)) {
       return path;
     }
@@ -135,6 +136,13 @@ export const App: React.FC = () => {
             <ShiftPage
               activeSessionId={activeSessionId}
               onSessionCreated={handleSessionChange}
+            />
+          )}
+
+          {activeTab === 'lineage' && (
+            <LineagePage
+              activeSessionId={activeSessionId}
+              onNavigate={handleTabChange}
             />
           )}
 

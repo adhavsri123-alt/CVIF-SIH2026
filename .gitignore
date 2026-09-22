@@ -42,10 +42,10 @@ htmlcov/
 frontend/node_modules/
 
 # Project runtime data (never commit air-gapped run data)
-data/
-storage/
-evidence_store/
-audit_logs/
+/data/
+/storage/
+/evidence_store/
+/audit_logs/
 keystore/*.key
 *.db
 *.jsonl

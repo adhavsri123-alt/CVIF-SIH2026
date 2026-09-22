@@ -276,6 +276,20 @@ class AssessRequest(BaseModel):
 
 
 # =====================================================================
+# Session Schemas
+# =====================================================================
+
+class CreateSessionRequest(BaseModel):
+    operator_id: Optional[str] = Field(None, description="Optional operator identifier for audit trail.")
+
+
+class CreateSessionResponse(BaseModel):
+    session_id: UUID
+    status: str
+    created_at: str
+
+
+# =====================================================================
 # Evidence Schemas
 # =====================================================================
 
@@ -322,3 +336,130 @@ class EvidenceExportResponse(BaseModel):
     total_records: int
     total_files: int
     sha256_manifest_digest: str
+
+
+# =====================================================================
+# Integrity Lineage Schemas
+# =====================================================================
+
+class UnsupportedCheckDetail(BaseModel):
+    check_id: str
+    reason: str
+
+
+class DatasetLineageNode(BaseModel):
+    stage: str = "DATASET"
+    status: str  # VERIFIED, FINDINGS, REVIEW, UNSUPPORTED, NOT RUN, FAILED / TAMPERED
+    dataset_identity: Optional[str] = None
+    dataset_hash: Optional[str] = None
+    format: Optional[str] = None
+    findings_count: int = 0
+    findings: List[Finding] = Field(default_factory=list)
+    evidence_count: int = 0
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class ModelLineageNode(BaseModel):
+    stage: str = "MODEL"
+    status: str  # VERIFIED, FINDINGS, REVIEW, UNSUPPORTED, NOT RUN, FAILED / TAMPERED
+    candidate_model_id: Optional[str] = None
+    model_digest: Optional[str] = None
+    reference_model: Optional[str] = None
+    findings_count: int = 0
+    findings: List[Finding] = Field(default_factory=list)
+    supported_checks: List[str] = Field(default_factory=list)
+    unsupported_checks: List[UnsupportedCheckDetail] = Field(default_factory=list)
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class InferenceLineageNode(BaseModel):
+    stage: str = "INFERENCE"
+    status: str  # VERIFIED, FINDINGS, REVIEW, UNSUPPORTED, NOT RUN, FAILED / TAMPERED
+    record_id: Optional[str] = None
+    session_id: Optional[str] = None
+    bound_model_digest: Optional[str] = None
+    verification_state: str = "NOT RUN"
+    is_valid: bool = False
+    is_tampered: bool = False
+    is_replayed: bool = False
+    model_mismatch: bool = False
+    producer_id: Optional[str] = None
+    signing_key_id: Optional[str] = None
+    findings_count: int = 0
+    findings: List[Finding] = Field(default_factory=list)
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class DistributionLineageNode(BaseModel):
+    stage: str = "DISTRIBUTION"
+    status: str  # VERIFIED, FINDINGS, REVIEW, UNSUPPORTED, NOT RUN, FAILED / TAMPERED
+    executed: bool = False
+    overall_distance: Optional[float] = None
+    natural_drift_likelihood: Optional[float] = None
+    suspicious_manipulation_likelihood: Optional[float] = None
+    shift_detected: bool = False
+    dimension_results: Dict[str, Any] = Field(default_factory=dict)
+    characterization: Optional[str] = None
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class EvidenceLineageNode(BaseModel):
+    stage: str = "EVIDENCE"
+    status: str  # VERIFIED, FINDINGS, REVIEW, UNSUPPORTED, NOT RUN, FAILED / TAMPERED
+    total_records: int = 0
+    cryptographic_records: int = 0
+    statistical_records: int = 0
+    artifact_records: int = 0
+    records: List[EvidenceRecordSummary] = Field(default_factory=list)
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class AuditLineageNode(BaseModel):
+    stage: str = "AUDIT"
+    status: str  # VERIFIED, FINDINGS, REVIEW, UNSUPPORTED, NOT RUN, FAILED / TAMPERED
+    active_epoch: int = 1
+    chain_intact: bool = True
+    total_events: int = 0
+    verified_events: int = 0
+    error_message: Optional[str] = None
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class AssuranceLineageNode(BaseModel):
+    stage: str = "ASSURANCE"
+    status: str  # VERIFIED, FINDINGS, REVIEW, UNSUPPORTED, NOT RUN, FAILED / TAMPERED
+    assessed: bool = False
+    disposition: Optional[str] = None  # ACCEPT, REVIEW, QUARANTINE
+    composite_risk_score: Optional[float] = None
+    summary: Optional[str] = None
+    coverage_state: str = "NOT RUN"  # COMPLETE, LIMITED COVERAGE, NOT RUN
+    contributing_finding_ids: List[str] = Field(default_factory=list)
+    unsupported_checks: List[str] = Field(default_factory=list)
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class LineageDependency(BaseModel):
+    source: str
+    target: str
+    relationship: str
+    is_valid: bool
+    description: str
+
+
+class IntegrityLineageResponse(BaseModel):
+    session_id: str
+    overall_status: str  # VERIFIED, FINDINGS / REVIEW, FAILED / QUARANTINE, INCOMPLETE / NOT VERIFIED, LIMITED COVERAGE
+    summary: str
+    dataset: DatasetLineageNode
+    model: ModelLineageNode
+    inference: InferenceLineageNode
+    distribution: DistributionLineageNode
+    evidence: EvidenceLineageNode
+    audit: AuditLineageNode
+    assurance: AssuranceLineageNode
+    dependencies: List[LineageDependency] = Field(default_factory=list)
+    timestamp: str
+
+
+class LineageVerifyRequest(BaseModel):
+    session_id: str = Field(..., description="Session ID to verify lineage for.")

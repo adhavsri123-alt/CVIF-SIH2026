@@ -264,26 +264,18 @@ class DistributionShiftOrchestrator:
         end_time = utc_now()
         duration_ms = round((time.monotonic() - start_mono) * 1000.0, 2)
 
-        session = AnalysisSession(
-            session_id=sess_id,
-            asset_id=evaluation_dataset.asset_id,
-            status=SessionStatus.COMPLETED,
-            requested_analyses=requested_checks or ["AUTO"],
-            executed_analyses=executed,
-            skipped_analyses=skipped,
-            start_time=start_time,
-            end_time=end_time,
-            duration_ms=duration_ms,
-            findings=all_findings,
-            operator_id=operator_id,
-            execution_environment={
-                "feature_extractor": self.feature_extractor.name,
-                "embedding_dim": self.feature_extractor.embedding_dim,
-                "analysis_type": "DISTRIBUTION_SHIFT",
-                "reference_asset_id": str(reference_dataset.asset_id),
-                "evaluation_asset_id": str(evaluation_dataset.asset_id),
-            },
-        )
+        env_updates = {
+            "feature_extractor": self.feature_extractor.name,
+            "embedding_dim": self.feature_extractor.embedding_dim,
+            "analysis_type": "DISTRIBUTION_SHIFT",
+            "reference_asset_id": str(reference_dataset.asset_id),
+            "evaluation_asset_id": str(evaluation_dataset.asset_id),
+            "overall_distance": overall_distance,
+            "characterization": characterization,
+            "natural_drift_likelihood": assessment.natural_drift_likelihood,
+            "suspicious_manipulation_likelihood": assessment.suspicious_manipulation_likelihood,
+            "shift_detected": shift_detected,
+        }
 
         if self.db_manager:
             if self.db_manager.get_asset(evaluation_dataset.asset_id) is None:
@@ -302,9 +294,52 @@ class DistributionShiftOrchestrator:
                 except Exception:
                     pass
             try:
-                self.db_manager.save_session(session)
+                session = self.db_manager.update_session_section(
+                    session_id=sess_id,
+                    section="distribution",
+                    asset_id=evaluation_dataset.asset_id,
+                    executed_analyses=executed,
+                    skipped_analyses=skipped,
+                    findings=all_findings,
+                    environment_updates=env_updates,
+                    operator_id=operator_id,
+                    status=SessionStatus.COMPLETED,
+                    duration_ms=duration_ms,
+                )
             except Exception:
-                pass
+                session = AnalysisSession(
+                    session_id=sess_id,
+                    asset_id=evaluation_dataset.asset_id,
+                    status=SessionStatus.COMPLETED,
+                    requested_analyses=requested_checks or ["AUTO"],
+                    executed_analyses=executed,
+                    skipped_analyses=skipped,
+                    start_time=start_time,
+                    end_time=end_time,
+                    duration_ms=duration_ms,
+                    findings=all_findings,
+                    operator_id=operator_id,
+                    execution_environment=env_updates,
+                )
+                try:
+                    self.db_manager.save_session(session)
+                except Exception:
+                    pass
+        else:
+            session = AnalysisSession(
+                session_id=sess_id,
+                asset_id=evaluation_dataset.asset_id,
+                status=SessionStatus.COMPLETED,
+                requested_analyses=requested_checks or ["AUTO"],
+                executed_analyses=executed,
+                skipped_analyses=skipped,
+                start_time=start_time,
+                end_time=end_time,
+                duration_ms=duration_ms,
+                findings=all_findings,
+                operator_id=operator_id,
+                execution_environment=env_updates,
+            )
 
         if self.audit_logger:
             self.audit_logger.log_event(

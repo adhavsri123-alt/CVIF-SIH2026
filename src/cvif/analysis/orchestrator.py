@@ -153,26 +153,77 @@ class DatasetIntegrityOrchestrator:
         end_time = utc_now()
         duration_ms = round((time.monotonic() - start_mono) * 1000.0, 2)
 
-        session = AnalysisSession(
-            session_id=sess_id,
-            asset_id=dataset.asset_id,
-            status=SessionStatus.COMPLETED,
-            requested_analyses=requested_checks or ["AUTO"],
-            executed_analyses=executed,
-            skipped_analyses=skipped,
-            start_time=start_time,
-            end_time=end_time,
-            duration_ms=duration_ms,
-            findings=all_findings,
-            operator_id=operator_id,
-            execution_environment={
-                "feature_extractor": self.feature_extractor.name,
-                "embedding_dim": self.feature_extractor.embedding_dim,
-            },
-        )
+        # Safely extract dataset hash from UnifiedDataset or fallback
+        dataset_hash = getattr(dataset, "dataset_hash", None)
+        if not dataset_hash and hasattr(dataset, "compute_dataset_hash"):
+            try:
+                dataset_hash = dataset.compute_dataset_hash()
+            except Exception:
+                pass
+        if not dataset_hash and hasattr(dataset, "hash_manifest") and dataset.hash_manifest:
+            entries = getattr(dataset.hash_manifest, "entries", None)
+            if entries:
+                dataset_hash = entries[0].digest
+
+        env_updates = {
+            "format": dataset.format_origin,
+            "dataset_hash": dataset_hash,
+            "dataset_images_count": len(dataset.images),
+            "dataset_annotations_count": len(dataset.annotations),
+            "dataset_asset_id": str(dataset.asset_id),
+            "feature_extractor": self.feature_extractor.name,
+            "embedding_dim": self.feature_extractor.embedding_dim,
+        }
 
         if self.db_manager:
-            self.db_manager.save_session(session)
+            try:
+                session = self.db_manager.update_session_section(
+                    session_id=sess_id,
+                    section="dataset",
+                    asset_id=dataset.asset_id,
+                    executed_analyses=executed,
+                    skipped_analyses=skipped,
+                    findings=all_findings,
+                    environment_updates=env_updates,
+                    operator_id=operator_id,
+                    status=SessionStatus.COMPLETED,
+                    duration_ms=duration_ms,
+                )
+            except Exception:
+                # Do not roll back successful dataset analysis on persistence failure
+                session = AnalysisSession(
+                    session_id=sess_id,
+                    asset_id=dataset.asset_id,
+                    status=SessionStatus.COMPLETED,
+                    requested_analyses=requested_checks or ["AUTO"],
+                    executed_analyses=executed,
+                    skipped_analyses=skipped,
+                    start_time=start_time,
+                    end_time=end_time,
+                    duration_ms=duration_ms,
+                    findings=all_findings,
+                    operator_id=operator_id,
+                    execution_environment=env_updates,
+                )
+                try:
+                    self.db_manager.save_session(session)
+                except Exception:
+                    pass
+        else:
+            session = AnalysisSession(
+                session_id=sess_id,
+                asset_id=dataset.asset_id,
+                status=SessionStatus.COMPLETED,
+                requested_analyses=requested_checks or ["AUTO"],
+                executed_analyses=executed,
+                skipped_analyses=skipped,
+                start_time=start_time,
+                end_time=end_time,
+                duration_ms=duration_ms,
+                findings=all_findings,
+                operator_id=operator_id,
+                execution_environment=env_updates,
+            )
 
         if self.audit_logger:
             self.audit_logger.log_event(

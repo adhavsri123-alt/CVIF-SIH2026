@@ -30,6 +30,10 @@ import {
   ProvenanceVerifyRequest,
   ProvenanceVerifyResponse,
   VersionResponse,
+  IntegrityLineageResponse,
+  LineageVerifyRequest,
+  CreateSessionRequest,
+  CreateSessionResponse,
 } from '../types/api';
 
 class ApiClient {
@@ -253,6 +257,32 @@ class ApiClient {
     return this.request<EvidenceExportResponse>('/evidence/export', {
       method: 'POST',
       body: JSON.stringify(req),
+    });
+  }
+
+  // ── 9. Integrity Lineage ───────────────────────────────────────────
+
+  public async getLineage(sessionId: string): Promise<IntegrityLineageResponse> {
+    return this.request<IntegrityLineageResponse>(`/lineage/session/${sessionId}`, {
+      method: 'GET',
+    });
+  }
+
+  public async verifyLineage(sessionId: string): Promise<IntegrityLineageResponse> {
+    const payload: LineageVerifyRequest = { session_id: sessionId };
+    return this.request<IntegrityLineageResponse>('/lineage/verify', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // ── 10. Session Management ──────────────────────────────────────────
+
+  public async createSession(operatorId?: string): Promise<CreateSessionResponse> {
+    const payload: CreateSessionRequest = { operator_id: operatorId };
+    return this.request<CreateSessionResponse>('/sessions/create', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   }
 }

@@ -149,29 +149,43 @@ class ModelIntegrityOrchestrator:
         end_time = utc_now()
         duration_ms = round((time.monotonic() - start_mono) * 1000.0, 2)
 
-        session = AnalysisSession(
-            session_id=sess_id,
-            asset_id=ass_id,
-            status=SessionStatus.COMPLETED,
-            requested_analyses=requested_checks or ["AUTO"],
-            executed_analyses=executed,
-            skipped_analyses=skipped,
-            start_time=start_time,
-            end_time=end_time,
-            duration_ms=duration_ms,
-            findings=all_findings,
-            operator_id=operator_id,
-            execution_environment={
-                "task_type": candidate_model.get_task_type().value,
-                "access_level": candidate_model.get_access_level().value,
-                "battery_hash": probe_battery.battery_hash,
-            },
-        )
+        env_updates = {
+            "task_type": candidate_model.get_task_type().value,
+            "access_level": candidate_model.get_access_level().value,
+            "battery_hash": probe_battery.battery_hash,
+            "model_id": getattr(candidate_model, "model_id", None) or "candidate_model",
+            "model_digest": getattr(candidate_model, "weights_digest", None),
+            "reference_weights": getattr(reference_model, "model_id", None) if reference_model else None,
+        }
 
         if self.db_manager:
-            self.db_manager.save_session(session)
-            for f in all_findings:
-                self.db_manager.save_finding(f)
+            session = self.db_manager.update_session_section(
+                session_id=sess_id,
+                section="model",
+                asset_id=ass_id,
+                executed_analyses=executed,
+                skipped_analyses=skipped,
+                findings=all_findings,
+                environment_updates=env_updates,
+                operator_id=operator_id,
+                status=SessionStatus.COMPLETED,
+                duration_ms=duration_ms,
+            )
+        else:
+            session = AnalysisSession(
+                session_id=sess_id,
+                asset_id=ass_id,
+                status=SessionStatus.COMPLETED,
+                requested_analyses=requested_checks or ["AUTO"],
+                executed_analyses=executed,
+                skipped_analyses=skipped,
+                start_time=start_time,
+                end_time=end_time,
+                duration_ms=duration_ms,
+                findings=all_findings,
+                operator_id=operator_id,
+                execution_environment=env_updates,
+            )
 
         if self.audit_logger:
             self.audit_logger.log_event(

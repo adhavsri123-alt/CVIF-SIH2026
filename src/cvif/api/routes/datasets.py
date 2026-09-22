@@ -103,7 +103,7 @@ def scan_dataset(
     return DatasetScanResponse(
         session_id=session.session_id,
         asset_id=session.asset_id,
-        status=session.status.value,
+        status=session.status.value if hasattr(session.status, "value") else str(session.status),
         findings_count=len(findings),
         has_critical_findings=has_severe,
         findings=findings,

@@ -27,7 +27,7 @@ from cvif.api.frontend import (
     get_frontend_dist_dir,
     mount_frontend,
 )
-from cvif.api.routes import audit, assess, datasets, evidence, health, models, provenance, shift
+from cvif.api.routes import audit, assess, datasets, evidence, health, lineage, models, provenance, sessions, shift
 from cvif.cli.commands.common import RuntimeContext
 from cvif.cli.commands.common import get_runtime_context as init_runtime_context
 from cvif.core.config import AppConfig, load_config
@@ -246,6 +246,8 @@ def create_app(
     app.include_router(shift.router, prefix=api_prefix)
     app.include_router(assess.router, prefix=api_prefix)
     app.include_router(evidence.router, prefix=api_prefix)
+    app.include_router(lineage.router, prefix=api_prefix)
+    app.include_router(sessions.router, prefix=api_prefix)
 
     # ── Frontend Dashboard & Static Serving (Phase 11) ─────────────────
     if serve_frontend:

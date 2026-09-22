@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   FileCheck2,
   Lock,
+  GitFork,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -22,6 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
     { id: 'model', label: 'Model Integrity', icon: Cpu },
     { id: 'provenance', label: 'Inference Provenance', icon: FileKey },
     { id: 'shift', label: 'Distribution Shift', icon: Activity },
+    { id: 'lineage', label: 'Integrity Lineage', icon: GitFork },
     { id: 'assurance', label: 'Assurance Assessment', icon: ShieldCheck },
     { id: 'evidence', label: 'Evidence Explorer', icon: FileCheck2 },
     { id: 'audit', label: 'Audit / System Status', icon: Lock },

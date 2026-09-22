@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Shield, ShieldAlert, Key, RefreshCw, Radio } from 'lucide-react';
+import { Shield, ShieldAlert, Key, RefreshCw, Radio, Plus } from 'lucide-react';
 import { HealthStatusResponse, VersionResponse } from '../../types/api';
+import api from '../../api/client';
 
 interface TopBarProps {
   health: HealthStatusResponse | null;
@@ -25,12 +26,27 @@ export const TopBar: React.FC<TopBarProps> = ({
 }) => {
   const [editingSession, setEditingSession] = useState(false);
   const [sessionInput, setSessionInput] = useState(activeSessionId);
+  const [creatingSession, setCreatingSession] = useState(false);
 
   const handleSessionSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (sessionInput.trim()) {
       onSessionChange(sessionInput.trim());
       setEditingSession(false);
+    }
+  };
+
+  const handleCreateSession = async () => {
+    try {
+      setCreatingSession(true);
+      const res = await api.createSession();
+      if (res && res.session_id) {
+        onSessionChange(res.session_id);
+      }
+    } catch (err) {
+      console.error('Failed to create new session:', err);
+    } finally {
+      setCreatingSession(false);
     }
   };
 
@@ -92,6 +108,22 @@ export const TopBar: React.FC<TopBarProps> = ({
                 + Set Active Session
               </button>
             )}
+            <button
+              className="btn btn-secondary"
+              style={{
+                padding: '4px 8px',
+                fontSize: '0.75rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+              onClick={handleCreateSession}
+              disabled={creatingSession}
+              title="Create a new, empty assessment session"
+            >
+              <Plus size={12} className={creatingSession ? 'animate-spin' : ''} />
+              {creatingSession ? 'Creating...' : 'New Session'}
+            </button>
           </div>
         )}
       </div>
