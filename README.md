@@ -143,7 +143,7 @@ pip install -e . --no-deps
 
 ---
 
-## 4. Command-Line Interface (CLI)
+## 4.Command-Line Interface (CLI)
 
 The `cvif` command provides full programmatic control over all framework capabilities:
 
